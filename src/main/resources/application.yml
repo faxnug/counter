@@ -2,7 +2,11 @@ spring:
   datasource:
     url: jdbc:sqlite:d:/test.db
     driver-class-name: org.sqlite.JDBC
-
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    timeout: 6000ms
+    password: 123456
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml
@@ -11,5 +15,19 @@ mybatis-plus:
   configuration:
     jdbc-type-for-null: 'null'
 
+
 server:
-  port: 8087
+  port: 8090
+
+#缓存过期时间
+cacheexpire:
+  captcha: 100
+  account: 3600
+  order: 36000
+
+#机器位置
+counter:
+  #机房ID
+  dataCenterId: 1
+  #机柜ID
+  workerId: 1
