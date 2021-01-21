@@ -9,6 +9,7 @@ import com.why.counter.util.JsonUtil;
 import com.why.counter.util.TimeformatUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 
@@ -20,9 +21,38 @@ import java.util.Date;
 @Component
 public class AccountServiceImpl implements AccountService {
     @Override
-    public Account login(long uid, String password, String captcha, String captchaId) throws Exception {
-        System.out.println("uid: " + uid + ",password: " + password + ",captcha: " + captcha + ",captchaId: " + captchaId);
+    @Transactional
+    public String register(long uid, String password, String captcha, String captchaId) throws Exception {
+        //1.校验账号
+        int uidcount = DbUtil.queryUid(uid);
+        if(uidcount > 0){
+            //用户名重复
+            return "用户名重复";
+        }
 
+        //2.入参的合法性验证,这里写的不严谨，只校验了字符串
+        if(StringUtils.isAllBlank(password,captcha,captchaId)){
+            return "密码/短信验证码不能为空";
+        }
+
+        //3.校验缓存验证码
+        String captchaCache = RedisStringCache.get(captchaId, CacheType.CAPTCHA);
+        if(StringUtils.isEmpty(captchaCache)){
+            return "请刷新验证码后重新提交";
+        }else if(!StringUtils.equalsIgnoreCase(captcha, captchaCache)){
+            return "验证码错误";
+        }
+        RedisStringCache.remove(captchaId, CacheType.CAPTCHA);
+
+        //4.数据库中新增账号信息
+        Date date = new Date();
+        int res = DbUtil.insertAccount(uid, password,TimeformatUtil.yyyyMMdd(date),TimeformatUtil.yyyyMMddHHmmss(date));
+        System.out.println("res: " + res);
+        return res > 0 ? "注册成功" : "注册失败";
+    }
+
+    @Override
+    public Account login(long uid, String password, String captcha, String captchaId) throws Exception {
         //1.入参的合法性验证
         if(StringUtils.isAllBlank(password, captcha, captchaId)){
             return null;
@@ -71,5 +101,19 @@ public class AccountServiceImpl implements AccountService {
         }else{
             return false;
         }
+    }
+
+    //清除缓存登录信息
+    @Override
+    public boolean logout(String token) {
+        RedisStringCache.remove(token, CacheType.ACCOUNT);
+        return true;
+    }
+
+    //修改密码
+    @Override
+    public boolean updatePwd(long uid, String oldPwd, String newPwd) {
+        int res = DbUtil.updatePwd(uid, oldPwd, newPwd);
+        return res == 0 ? false : true;
     }
 }

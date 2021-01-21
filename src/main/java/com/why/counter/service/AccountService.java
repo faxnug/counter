@@ -1,6 +1,7 @@
 package com.why.counter.service;
 
 import com.why.counter.bean.res.Account;
+import com.why.counter.util.DbUtil;
 
 /**
  * @Author WHY
@@ -8,6 +9,16 @@ import com.why.counter.bean.res.Account;
  * @Version 1.0
  */
 public interface AccountService {
+    /**
+     * 注册
+     * @param uid
+     * @param password
+     * @param captcha
+     * @param captchaId
+     * @return
+     * @throws Exception
+     */
+    String register(long uid, String password, String captcha, String captchaId) throws Exception;
 
     /**
      * 登录
@@ -27,4 +38,20 @@ public interface AccountService {
      */
     boolean accountExitInCache(String token);
 
+    /**
+     * 退出登录
+     * @param token
+     * @return
+     */
+    boolean logout(String token);
+
+
+    /**
+     * 修改密码
+     * @param uid
+     * @param oldPwd
+     * @param newPwd
+     * @return
+     */
+    boolean updatePwd(long uid, String oldPwd, String newPwd);
 }

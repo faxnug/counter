@@ -19,4 +19,16 @@
           modifyTime = #{ModifyTime}
         where uid = #{UId}
     </update>
+
+    <update id="updatePwd" parameterType="hashmap">
+        update t_user set password = #{NewPwd} where uid = #{UId} and password = #{OldPwd}
+    </update>
+
+    <select id="queryUID" parameterType="hashmap" resultType="java.lang.Integer">
+        select count(*) from t_user where uid = #{UId};
+    </select>
+
+    <insert id="insertAccount" parameterType="hashmap">
+        insert into t_user(uid, password, createDate, createTime) values (#{UId}, #{Password}, #{CreateDate}, #{CreateTime});
+    </insert>
 </mapper>
